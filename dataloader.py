@@ -169,8 +169,6 @@ class AniSeg(BaseDataset):
             img, gt = self._fetch_data(img_path, None)
 
         if gt is not None:
-            print("____")
-            print(img_path)
             gt = np.uint8(gt)
 
         img = img[:, :, ::-1]
