@@ -24,9 +24,9 @@ if os.getenv('volna') is not None:
     C.volna = os.environ['volna']
 else:
     #C.volna = '/home/cxk/msra_container/' # the path to the data dir.
-    C.volna = r'J:\master_1_down\_paper\code\TorchSemiSeg-main\res50v3+CPS+CutMix_anime\AniSeg'
+    C.volna = '/content/Animaye_Character_Parsing_v0318/AniSeg'
 """please config ROOT_dir and user when u first using"""
-C.repo_name = 'TorchSemiSeg'
+C.repo_name = 'Animaye_Character_Parsing_v0318'
 C.abs_dir = osp.realpath(".")
 C.this_dir = C.abs_dir.split(osp.sep)[-1]
 
@@ -101,9 +101,9 @@ else:
 
 if os.getenv('batch_size'):
     #C.batch_size = int(os.environ['batch_size'])
-    C.batch_size = 2
+    C.batch_size = 8
 else:
-    C.batch_size = 2
+    C.batch_size = 8
 
 C.lr_power = 0.9
 C.momentum = 0.9
