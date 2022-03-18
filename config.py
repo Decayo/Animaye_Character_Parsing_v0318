@@ -83,8 +83,8 @@ C.cutmix_boxmask_outside_bounds = False
 C.cutmix_boxmask_no_invert = False
 
 ''' Image Config '''
-C.num_classes = 16
-C.background = 16
+C.num_classes = 17
+C.background = 17
 C.image_mean = np.array([0.485, 0.456, 0.406])  # 0.485, 0.456, 0.406
 C.image_std = np.array([0.229, 0.224, 0.225])
 C.image_height = 512

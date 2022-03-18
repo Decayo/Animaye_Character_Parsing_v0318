@@ -112,7 +112,7 @@ if __name__ == '__main__':
         # set the lr
         base_lr = config.lr
         if engine.distributed:
-            base_lr = config.lr * engine.world_size
+            base_lr = config.lr * 1
 
         # define two optimizers
         params_list_l = []
@@ -236,7 +236,7 @@ if __name__ == '__main__':
 
                 cps_loss = criterion(logits_cons_stu_1, ps_label_2) + criterion(logits_cons_stu_2, ps_label_1)
                 #dist.all_reduce(cps_loss, dist.ReduceOp.SUM)
-                #cps_loss = cps_loss / engine.world_size
+                #cps_loss = cps_loss / 1
                 cps_loss = cps_loss * config.cps_weight
 
                 # supervised loss on both models
@@ -245,11 +245,11 @@ if __name__ == '__main__':
 
                 loss_sup = criterion(sup_pred_l, gts)
                 #dist.all_reduce(loss_sup, dist.ReduceOp.SUM)
-                loss_sup = loss_sup / engine.world_size
+                loss_sup = loss_sup 
 
                 loss_sup_r = criterion(sup_pred_r, gts)
                 #dist.all_reduce(loss_sup_r, dist.ReduceOp.SUM)
-                loss_sup_r = loss_sup_r / engine.world_size
+                loss_sup_r = loss_sup_r 
                 current_idx = epoch * config.niters_per_epoch + idx
                 lr = lr_policy.get_lr(current_idx)
 

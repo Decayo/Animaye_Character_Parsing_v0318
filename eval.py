@@ -55,7 +55,7 @@ def get_class_colors(*args):
     def uint82bin(n, count=8):
         """returns the binary of integer n, count refers to amount of bits"""
         return ''.join([str((n >> y) & 1) for y in range(count - 1, -1, -1)])
-    N = 16
+    N = config.num_classes
     cmap = np.zeros((N, 3), dtype=np.uint8)
     for i in range(N):
         r, g, b = 0, 0, 0

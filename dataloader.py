@@ -211,7 +211,7 @@ class AniSeg(BaseDataset):
             """returns the binary of integer n, count refers to amount of bits"""
             return ''.join([str((n >> y) & 1) for y in range(count - 1, -1, -1)])
 
-        N = 16
+        N = config.num_classes
         cmap = np.zeros((N, 3), dtype=np.uint8)
         for i in range(N):
             r, g, b = 0, 0, 0
@@ -230,11 +230,11 @@ class AniSeg(BaseDataset):
 
     @classmethod
     def get_class_names(*args):
-        return ['01_hair', '02_hair_decoration', '03_face', '04_eyes',
+        return ['01_hair', '02_hair_decoration', '03_face', '04_eyes','05_mouth',
                 '06_face_wearing/decoration',
-                '07_ears', '08_torso', '09_torso_wearing', '10_arms', '11_hands', 'cow',
+                '07_ears', '08_torso', '09_torso_wearing', '10_arms', '11_hands',
                 '12_legs',
-                '13_feet', 'horse', '14_legs_wearing/decoration', '15_stockings',
+                '13_feet', '14_legs_wearing/decoration', '15_stockings',
                 '16_shoes',
                 '17_unlabeled']
 
