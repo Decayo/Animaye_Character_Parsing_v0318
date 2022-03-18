@@ -24,7 +24,7 @@ if os.getenv('volna') is not None:
     C.volna = os.environ['volna']
 else:
     #C.volna = '/home/cxk/msra_container/' # the path to the data dir.
-    C.volna = '/content/Animaye_Character_Parsing_v0318/AniSeg'
+    C.volna = r'/content/Animaye_Character_Parsing_v0318/AniSeg'
 """please config ROOT_dir and user when u first using"""
 C.repo_name = 'Animaye_Character_Parsing_v0318'
 C.abs_dir = osp.realpath(".")
@@ -40,7 +40,7 @@ C.log_dir_link = osp.join(C.abs_dir, 'log')
 if os.getenv('snapshot_dir'):
     C.snapshot_dir = osp.join(os.environ['snapshot_dir'], "snapshot")
 else:
-    C.snapshot_dir = '/content/drive/MyDrive/_Anime_paper_/log'
+    C.snapshot_dir = r'/content/drive/MyDrive/_Anime_paper_/log'
 
 exp_time = time.strftime('%Y_%m_%d_%H_%M_%S', time.localtime())
 C.log_file = C.log_dir + '/log_' + exp_time + '.log'
