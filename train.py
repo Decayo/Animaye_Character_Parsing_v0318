@@ -245,7 +245,7 @@ if __name__ == '__main__':
 
                 loss_sup = criterion(sup_pred_l, gts)
                 #dist.all_reduce(loss_sup, dist.ReduceOp.SUM)
-                loss_sup = loss_sup 
+                #loss_sup = loss_sup 
 
                 loss_sup_r = criterion(sup_pred_r, gts)
                 #dist.all_reduce(loss_sup_r, dist.ReduceOp.SUM)

@@ -14,7 +14,7 @@ import pdb
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+from config import config
 __all__ = ['RMILoss']
 
 TORCH_VERSION = torch.__version__[:3]
@@ -70,7 +70,7 @@ def map_get_pairs(labels_4D, probs_4D, radius=3, is_combine=True):
 		pr_vectors = torch.stack(pr_ns, dim=2)
 		return la_vectors, pr_vectors
 
-def map_get_pairs_region(labels_4D, probs_4D, radius=3, is_combine=0, num_classeses=21):
+def map_get_pairs_region(labels_4D, probs_4D, radius=3, is_combine=0, num_classeses=config.num_classes):
 	"""get map pairs
 	Args:
 		labels_4D	:	labels, shape [N, C, H, W].

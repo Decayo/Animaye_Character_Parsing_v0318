@@ -24,7 +24,7 @@ if os.getenv('volna') is not None:
     C.volna = os.environ['volna']
 else:
     #C.volna = '/home/cxk/msra_container/' # the path to the data dir.
-    C.volna = r'/content/Animaye_Character_Parsing_v0318/AniSeg'
+    C.volna = r'/content/Animaye_Character_Parsing_v0318/scaledAniSeg'
 """please config ROOT_dir and user when u first using"""
 C.repo_name = 'Animaye_Character_Parsing_v0318'
 C.abs_dir = osp.realpath(".")
@@ -89,8 +89,8 @@ C.image_mean = np.array([0.485, 0.456, 0.406])  # 0.485, 0.456, 0.406
 C.image_std = np.array([0.229, 0.224, 0.225])
 C.image_height = 512
 C.image_width = 512
-C.num_train_imgs = 517
-C.num_eval_imgs = 1449
+C.num_train_imgs = 510
+C.num_eval_imgs = 275
 C.num_unsup_imgs = 3147     # unsupervised samples
 
 """Train Config"""
@@ -113,8 +113,8 @@ C.nepochs = 34
 C.max_samples = max(C.num_train_imgs, C.num_unsup_imgs)     # Define the iterations in an epoch
 C.cold_start = 0
 C.niters_per_epoch = int(math.ceil(C.max_samples * 1.0 // C.batch_size))
-C.num_workers = 8
-C.train_scale_array = [0.3,0.4,0.5,0.75, 1, 1.5, 1.75]
+C.num_workers = 0
+C.train_scale_array = [0.5,0.75, 1, 1.5, 1.75,2, 2.5 ,2.75,3,3.5,3.75]
 C.warm_up_epoch = 0
 
 ''' Eval Config '''

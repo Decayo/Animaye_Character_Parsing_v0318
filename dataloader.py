@@ -211,7 +211,7 @@ class AniSeg(BaseDataset):
             """returns the binary of integer n, count refers to amount of bits"""
             return ''.join([str((n >> y) & 1) for y in range(count - 1, -1, -1)])
 
-        N = config.num_classes
+        N = 17
         cmap = np.zeros((N, 3), dtype=np.uint8)
         for i in range(N):
             r, g, b = 0, 0, 0
