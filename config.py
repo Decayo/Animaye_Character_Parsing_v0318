@@ -84,7 +84,7 @@ C.cutmix_boxmask_no_invert = False
 
 ''' Image Config '''
 C.num_classes = 17
-C.background = 17
+C.background = 16
 C.image_mean = np.array([0.485, 0.456, 0.406])  # 0.485, 0.456, 0.406
 C.image_std = np.array([0.229, 0.224, 0.225])
 C.image_height = 512
@@ -101,9 +101,9 @@ else:
 
 if os.getenv('batch_size'):
     #C.batch_size = int(os.environ['batch_size'])
-    C.batch_size = 8
+    C.batch_size = 4
 else:
-    C.batch_size = 8
+    C.batch_size = 4
 
 C.lr_power = 0.9
 C.momentum = 0.9
@@ -114,7 +114,7 @@ C.max_samples = max(C.num_train_imgs, C.num_unsup_imgs)     # Define the iterati
 C.cold_start = 0
 C.niters_per_epoch = int(math.ceil(C.max_samples * 1.0 // C.batch_size))
 C.num_workers = 0
-C.train_scale_array = [0.5,0.75, 1, 1.5, 1.75,2, 2.5 ,2.75,3,3.5,3.75]
+C.train_scale_array = [0.25,0.3,0.35,0.4,0.45,0.5,0.75, 1,1.25]
 C.warm_up_epoch = 0
 
 ''' Eval Config '''
