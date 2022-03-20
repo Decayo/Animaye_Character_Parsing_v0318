@@ -100,7 +100,7 @@ if __name__ == '__main__':
             print("----not distributed")
             BatchNorm2d = nn.BatchNorm2d
         model = Network(config.num_classes, criterion=criterion,
-                        pretrained_model=config.pretrained_model,
+                        pretrained_model=None,
                         norm_layer=BatchNorm2d)
         init_weight(model.branch1.business_layer, nn.init.kaiming_normal_,
                     BatchNorm2d, config.bn_eps, config.bn_momentum,
