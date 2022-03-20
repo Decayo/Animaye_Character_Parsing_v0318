@@ -15,7 +15,7 @@ from utils.visualize import print_iou, show_img
 from engine.evaluator import Evaluator
 from engine.logger import get_logger
 from seg_opr.metric import hist_info, compute_score
-from dataloader import VOC
+from dataloader import AniSeg
 from dataloader import ValPre
 from network import Network
 
@@ -138,7 +138,7 @@ class SegEvaluator(Evaluator):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-e', '--epochs', default='last', type=str)
-    parser.add_argument('-d', '--devices', default='1', type=str)
+    parser.add_argument('-d', '--devices', default='0', type=str)
     parser.add_argument('-v', '--verbose', default=False, action='store_true')
     parser.add_argument('--show_image', '-s', default=True,
                         action='store_true')
@@ -153,7 +153,7 @@ if __name__ == "__main__":
                     'train_source': config.train_source,
                     'eval_source': config.eval_source}
     val_pre = ValPre()
-    dataset = VOC(data_setting, 'val', val_pre, training=False)
+    dataset = AniSeg(data_setting, 'val', val_pre, training=False)
     print(data_setting)
     with torch.no_grad():
         segmentor = SegEvaluator(dataset, config.num_classes, config.image_mean,
