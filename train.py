@@ -24,6 +24,8 @@ from seg_opr.loss_opr import SigmoidFocalLoss, ProbOhemCrossEntropy2d
 # from seg_opr.sync_bn import DataParallelModel, Reduce, BatchNorm2d
 from tensorboardX import SummaryWriter
 
+scaler = torch.cuda.amp.GradScaler()
+
 try:
     from apex.parallel import DistributedDataParallel, SyncBatchNorm
 except ImportError:
@@ -207,7 +209,9 @@ if __name__ == '__main__':
                 # unsupervised loss on model/branch#1
                 batch_mix_masks = mask_params
                 unsup_imgs_mixed = unsup_imgs_0 * (1 - batch_mix_masks) + unsup_imgs_1 * batch_mix_masks
+
                 with torch.no_grad():
+                  with torch.cuda.amp.autocast():
                     # Estimate the pseudo-label with branch#1 & supervise branch#2
                     _, logits_u0_tea_1 = model(unsup_imgs_0, step=1)
                     _, logits_u1_tea_1 = model(unsup_imgs_1, step=1)
@@ -222,51 +226,56 @@ if __name__ == '__main__':
                 # Mix teacher predictions using same mask
                 # It makes no difference whether we do this with logits or probabilities as
                 # the mask pixels are either 1 or 0
-                logits_cons_tea_1 = logits_u0_tea_1 * (1 - batch_mix_masks) + logits_u1_tea_1 * batch_mix_masks
-                _, ps_label_1 = torch.max(logits_cons_tea_1, dim=1)
-                ps_label_1 = ps_label_1.long()
-                logits_cons_tea_2 = logits_u0_tea_2 * (1 - batch_mix_masks) + logits_u1_tea_2 * batch_mix_masks
-                _, ps_label_2 = torch.max(logits_cons_tea_2, dim=1)
-                ps_label_2 = ps_label_2.long()
+                with torch.cuda.amp.autocast():
+                  logits_cons_tea_1 = logits_u0_tea_1 * (1 - batch_mix_masks) + logits_u1_tea_1 * batch_mix_masks
+                  _, ps_label_1 = torch.max(logits_cons_tea_1, dim=1)
+                  ps_label_1 = ps_label_1.long()
+                  logits_cons_tea_2 = logits_u0_tea_2 * (1 - batch_mix_masks) + logits_u1_tea_2 * batch_mix_masks
+                  _, ps_label_2 = torch.max(logits_cons_tea_2, dim=1)
+                  ps_label_2 = ps_label_2.long()
 
-                # Get student#1 prediction for mixed image
-                _, logits_cons_stu_1 = model(unsup_imgs_mixed, step=1)
-                # Get student#2 prediction for mixed image
-                _, logits_cons_stu_2 = model(unsup_imgs_mixed, step=2)
+                  # Get student#1 prediction for mixed image
+                  _, logits_cons_stu_1 = model(unsup_imgs_mixed, step=1)
+                  # Get student#2 prediction for mixed image
+                  _, logits_cons_stu_2 = model(unsup_imgs_mixed, step=2)
 
-                cps_loss = criterion(logits_cons_stu_1, ps_label_2) + criterion(logits_cons_stu_2, ps_label_1)
-                #dist.all_reduce(cps_loss, dist.ReduceOp.SUM)
-                #cps_loss = cps_loss / 1
-                cps_loss = cps_loss * config.cps_weight
+                  cps_loss = criterion(logits_cons_stu_1, ps_label_2) + criterion(logits_cons_stu_2, ps_label_1)
+                  #dist.all_reduce(cps_loss, dist.ReduceOp.SUM)
+                  #cps_loss = cps_loss / 1
+                  cps_loss = cps_loss * config.cps_weight
 
-                # supervised loss on both models
-                _, sup_pred_l = model(imgs, step=1)
-                _, sup_pred_r = model(imgs, step=2)
+                  # supervised loss on both models
+                  _, sup_pred_l = model(imgs, step=1)
+                  _, sup_pred_r = model(imgs, step=2)
 
-                loss_sup = criterion(sup_pred_l, gts)
-                #dist.all_reduce(loss_sup, dist.ReduceOp.SUM)
-                #loss_sup = loss_sup 
+                  loss_sup = criterion(sup_pred_l, gts)
+                  #dist.all_reduce(loss_sup, dist.ReduceOp.SUM)
+                  #loss_sup = loss_sup 
 
-                loss_sup_r = criterion(sup_pred_r, gts)
-                #dist.all_reduce(loss_sup_r, dist.ReduceOp.SUM)
-                loss_sup_r = loss_sup_r 
-                current_idx = epoch * config.niters_per_epoch + idx
-                lr = lr_policy.get_lr(current_idx)
+                  loss_sup_r = criterion(sup_pred_r, gts)
+                  #dist.all_reduce(loss_sup_r, dist.ReduceOp.SUM)
+                  loss_sup_r = loss_sup_r 
+                  current_idx = epoch * config.niters_per_epoch + idx
+                  lr = lr_policy.get_lr(current_idx)
 
-                # print(len(optimizer.param_groups))
-                optimizer_l.param_groups[0]['lr'] = lr
-                optimizer_l.param_groups[1]['lr'] = lr
-                for i in range(2, len(optimizer_l.param_groups)):
-                    optimizer_l.param_groups[i]['lr'] = lr
-                optimizer_r.param_groups[0]['lr'] = lr
-                optimizer_r.param_groups[1]['lr'] = lr
-                for i in range(2, len(optimizer_r.param_groups)):
-                    optimizer_r.param_groups[i]['lr'] = lr
+                  # print(len(optimizer.param_groups))
+                  optimizer_l.param_groups[0]['lr'] = lr
+                  optimizer_l.param_groups[1]['lr'] = lr
+                  for i in range(2, len(optimizer_l.param_groups)):
+                      optimizer_l.param_groups[i]['lr'] = lr
+                  optimizer_r.param_groups[0]['lr'] = lr
+                  optimizer_r.param_groups[1]['lr'] = lr
+                  for i in range(2, len(optimizer_r.param_groups)):
+                      optimizer_r.param_groups[i]['lr'] = lr
 
-                loss = loss_sup + loss_sup_r + cps_loss
-                loss.backward()
-                optimizer_l.step()
-                optimizer_r.step()
+                  loss = loss_sup + loss_sup_r + cps_loss
+                scaler.scale(loss).backward()
+                #loss.backward()
+                scaler.step(optimizer_l)
+                scaler.step(optimizer_r)
+                # optimizer_l.step()
+                # optimizer_r.step()
+                scaler.update()
 
                 print_str = 'Epoch{}/{}'.format(epoch, config.nepochs) \
                             + ' Iter{}/{}:'.format(idx + 1, config.niters_per_epoch) \
@@ -281,11 +290,15 @@ if __name__ == '__main__':
                 pbar.set_description(print_str, refresh=False)
 
                 end_time = time.time()
-
-            if engine.distributed and (engine.local_rank == 0):
-                logger.add_scalar('train_loss_sup', sum_loss_sup / len(pbar), epoch)
-                logger.add_scalar('train_loss_sup_r', sum_loss_sup_r / len(pbar), epoch)
-                logger.add_scalar('train_loss_cps', sum_cps / len(pbar), epoch)
+            f=open(r'/content/drive/MyDrive/_Anime_paper_/log'+"loss.txt", "a+")
+            f.write('epoch %d\r\n'%epoch)
+            f.write(str(sum_loss_sup / len(pbar))+'\r\n')
+            f.write(str(sum_loss_sup_r / len(pbar))+'\r\n')
+            f.write(str(sum_cps / len(pbar))+'\r\n')
+            f.write('_______________ \r\n')
+            # logger.add_scalar('train_loss_sup', sum_loss_sup / len(pbar), epoch)
+            # logger.add_scalar('train_loss_sup_r', sum_loss_sup_r / len(pbar), epoch)
+            # logger.add_scalar('train_loss_cps', sum_cps / len(pbar), epoch)
 
             if azure and engine.local_rank == 0:
                 run.log(name='Supervised Training Loss', value=sum_loss_sup / len(pbar))
