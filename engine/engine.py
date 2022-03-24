@@ -41,7 +41,6 @@ class State(object):
 class Engine(object):
     def __init__(self, custom_parser=None):
         self.version = __version__
-        print("000")
         logger.info(
             "PyTorch Version {}, Furnace Version {}".format(torch.__version__,
                                                             self.version))
@@ -49,13 +48,14 @@ class Engine(object):
         self.devices = None
         self.distributed = False
 
-        self.parser = custom_parser
-        
-        #self.inject_default_parser()
-        self.args = self.parser.parse_args(args=[])
+        if custom_parser is None:
+            self.parser = argparse.ArgumentParser()
+        else:
+            assert isinstance(custom_parser, argparse.ArgumentParser)
+            self.parser = custom_parser
 
-
-
+        self.inject_default_parser()
+        self.args = self.parser.parse_args()
 
         if self.args.continue_fpath is not None and os.path.exists(self.args.continue_fpath):
             self.continue_state_object = self.args.continue_fpath
@@ -76,6 +76,25 @@ class Engine(object):
         else:
             self.devices = parse_devices(self.args.devices)
 
+    def inject_default_parser(self):
+        p = self.parser
+        p.add_argument('-d', '--devices', default='',
+                       help='set data parallel training')
+        # p.add_argument('-c', '--continue', type=extant_file,
+        #                metavar="FILE",
+        #                dest="continue_fpath",
+        #                help='continue from one certain checkpoint')
+        p.add_argument('-c', '--continue', type=str,
+                       dest="continue_fpath",
+                       help='continue from one certain checkpoint')
+        p.add_argument('--local_rank', default=0, type=int,
+                       help='process rank on node')
+        p.add_argument('-p', '--port', type=str,
+                       default='16001',
+                       dest="port",
+                       help='port for init_process_group')
+        p.add_argument('--debug', default=0, type=int,
+                       help='whether to use the debug mode')
 
     def register_state(self, **kwargs):
         self.state.register(**kwargs)
