@@ -13,23 +13,34 @@ import gryds
 def random_3d_transformation(img,gt):
     img_augmented_image = img
     gt_img = gt
-    if random.random() >= 0.5:
-        random_grid = np.random.rand(2, 3, 3) # Make a random 2D 3 x 3 grid
-        random_grid -= 0.9 # Move the displacements to the -0.5 to 0.5 grid
-        random_grid /= 5 # Scale the grid to -0.1 to 0.1 displacements
-        img_data = np.array(img)
-        gt_data = np.array(gt)
-        the_image_interpolator = gryds.MultiChannelInterpolator(img_data, mode='nearest')
-        the_augmentation = gryds.BSplineTransformation(random_grid)
-        img_augmented_image = the_image_interpolator.transform(the_augmentation)
+    if gt is not None:
+      if random.random() >= 0.5:
+          random_grid = np.random.rand(2, 3, 3) # Make a random 2D 3 x 3 grid
+          random_grid -= 0.9 # Move the displacements to the -0.5 to 0.5 grid
+          random_grid /= 5 # Scale the grid to -0.1 to 0.1 displacements
+          img_data = np.array(img)
+
+          # print ("img ?gT?")
+          # print (img_data.shape)
+          # print (gt_data.shape)
+          # print (gt_data[:,:,0].shape)
+          # print ((gt_data[:,:,0] == _2d_gt_data).all())
+          the_image_interpolator = gryds.MultiChannelInterpolator(img_data, mode='nearest')
+          the_augmentation = gryds.BSplineTransformation(random_grid)
+          img_augmented_image = the_image_interpolator.transform(the_augmentation)
+          
+          the_image_interpolator = gryds.Interpolator(gt_img, mode='nearest')
+          the_augmentation = gryds.BSplineTransformation(random_grid)
+          gt_augmented_image = the_image_interpolator.transform(the_augmentation)
+          
+          img_augmented_image = img_augmented_image.astype(np.int32)
+          gt_img = gt_augmented_image.astype(np.int32)
+      
+      gt_img[gt_img>12] = 0
+      gt_img[gt_img<0] = 0
         
-        the_image_interpolator = gryds.MultiChannelInterpolator(gt_data, mode='nearest')
-        the_augmentation = gryds.BSplineTransformation(random_grid)
-        gt_augmented_image = the_image_interpolator.transform(the_augmentation)
-        
-        img_augmented_image = img_augmented_image.astype(np.int32)
-        gt_img = gt_augmented_image.astype(np.int32)
-        gt_img[(gt_img > (12,12,12)).all(axis = -1)] = (0,0,0)
+
+            
         
     
     return img_augmented_image,gt_img
@@ -67,12 +78,14 @@ class TrainPre(object):
 
     def __call__(self, img, gt=None):
         # gt = gt - 1     # label 0 is invalid, this operation transfers label 0 to label 255
+        
         img, gt = random_mirror(img, gt)
         if config.train_scale_array is not None:
             img, gt, scale = random_scale(img, gt, config.train_scale_array)
             
-        img,gt = random_3d_transformation(img,gt)
         
+        img, gt = random_3d_transformation(img,gt)
+
         img = normalize(img, self.img_mean, self.img_std)
 
         crop_size = (config.image_height, config.image_width)
@@ -239,7 +252,7 @@ class AniSeg(BaseDataset):
             """returns the binary of integer n, count refers to amount of bits"""
             return ''.join([str((n >> y) & 1) for y in range(count - 1, -1, -1)])
 
-        N = 17
+        N = config.num_classes
         cmap = np.zeros((N, 3), dtype=np.uint8)
         for i in range(N):
             r, g, b = 0, 0, 0
