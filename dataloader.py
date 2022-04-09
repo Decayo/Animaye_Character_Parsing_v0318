@@ -7,7 +7,33 @@ import random
 from config import config
 from utils.img_utils import generate_random_crop_pos, random_crop_pad_to_shape
 from datasets.BaseDataset import BaseDataset
+import gryds
 
+
+def random_3d_transformation(img,gt):
+    img_augmented_image = img
+    gt_img = gt
+    if random.random() >= 0.5:
+        random_grid = np.random.rand(2, 3, 3) # Make a random 2D 3 x 3 grid
+        random_grid -= 0.9 # Move the displacements to the -0.5 to 0.5 grid
+        random_grid /= 5 # Scale the grid to -0.1 to 0.1 displacements
+        img_data = np.array(img)
+        gt_data = np.array(gt)
+        the_image_interpolator = gryds.MultiChannelInterpolator(img_data, mode='nearest')
+        the_augmentation = gryds.BSplineTransformation(random_grid)
+        img_augmented_image = the_image_interpolator.transform(the_augmentation)
+        
+        the_image_interpolator = gryds.MultiChannelInterpolator(gt_data, mode='nearest')
+        the_augmentation = gryds.BSplineTransformation(random_grid)
+        gt_augmented_image = the_image_interpolator.transform(the_augmentation)
+        
+        img_augmented_image = img_augmented_image.astype(np.int32)
+        gt_img = gt_augmented_image.astype(np.int32)
+        gt_img[(gt_img > (12,12,12)).all(axis = -1)] = (0,0,0)
+        
+    
+    return img_augmented_image,gt_img
+        
 def random_mirror(img, gt=None):
     if random.random() >= 0.5:
         img = cv2.flip(img, 1)
@@ -44,7 +70,9 @@ class TrainPre(object):
         img, gt = random_mirror(img, gt)
         if config.train_scale_array is not None:
             img, gt, scale = random_scale(img, gt, config.train_scale_array)
-
+            
+        img,gt = random_3d_transformation(img,gt)
+        
         img = normalize(img, self.img_mean, self.img_std)
 
         crop_size = (config.image_height, config.image_width)
@@ -140,7 +168,7 @@ class AniSeg(BaseDataset):
         '''
         if self.pseudo_label is True:
             img_path = os.path.join(self._img_path ,datadir, 'image', names + '.jpg')
-            print(img_path)
+            #print(img_path)
             img = self._open_image(img_path)
             # print(names)
             item_name = names.strip()
@@ -230,13 +258,11 @@ class AniSeg(BaseDataset):
 
     @classmethod
     def get_class_names(*args):
-        return ['01_hair', '02_hair_decoration', '03_face', '04_eyes','05_mouth',
-                '06_face_wearing/decoration',
-                '07_ears', '08_torso', '09_torso_wearing', '10_arms', '11_hands',
-                '12_legs',
-                '13_feet', '14_legs_wearing/decoration', '15_stockings',
-                '16_shoes',
-                '17_unlabeled']
+        return ['00_unlabeled','01_hair', '02_face', '03_eyes',"04_assesories",
+                '05_ears',
+                '06_torso', '07_torso_wearing', '08_arms', '09_hands',
+                '10_legs',
+                '11_feet', '12_legs_wearing/decoration']
 
     @classmethod
     def transform_label(cls, pred, name):

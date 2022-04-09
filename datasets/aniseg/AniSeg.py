@@ -15,18 +15,15 @@ class AniSeg(BaseDataset):
                 [255, 153, 18], [245, 222, 179], [218, 165, 105],
                 [127, 255, 0],
                 [0, 255, 0], [8, 46, 84], [64, 224, 208],
-                [176, 226, 255],
-                [0, 139, 139], [144, 238, 144], [139, 101, 8],
-                [74, 112, 139]]
+                [176, 226, 255]]
 
     @classmethod
     def get_class_names(*args):
-        return ['00_unlabeled','01_hair', '02_hair_decoration', '03_face', '04_eyes',"05_mouth",
-                '06_face_wearing/decoration',
-                '07_ears', '08_torso', '09_torso_wearing', '10_arms', '11_hands',
-                '12_legs',
-                '13_feet', '14_legs_wearing/decoration', '15_stockings',
-                '16_shoes']
+        return ['00_unlabeled','01_hair', '02_face', '03_eyes',"04_assesories",
+                '05_ears',
+                '06_torso', '07_torso_wearing', '08_arms', '09_hands',
+                '10_legs',
+                '11_feet', '12_legs_wearing/decoration']
 
 
 
