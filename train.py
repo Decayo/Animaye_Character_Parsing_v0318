@@ -26,11 +26,6 @@ from tensorboardX import SummaryWriter
 
 scaler = torch.cuda.amp.GradScaler()
 
-try:
-    from apex.parallel import DistributedDataParallel, SyncBatchNorm
-except ImportError:
-    raise ImportError(
-        "Please install apex from https://www.github.com/nvidia/apex .")
 
 try:
     from azureml.core import Run

@@ -84,7 +84,9 @@ class TrainPre(object):
             img, gt, scale = random_scale(img, gt, config.train_scale_array)
             
         
-        img, gt = random_3d_transformation(img,gt)
+        if gt is not None:
+            gt[gt>config.num_classes] = 0
+            gt[gt<0] = 0
 
         img = normalize(img, self.img_mean, self.img_std)
 

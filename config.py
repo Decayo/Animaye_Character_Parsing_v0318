@@ -24,9 +24,9 @@ if os.getenv('volna') is not None:
     C.volna = os.environ['volna']
 else:
     #C.volna = '/home/cxk/msra_container/' # the path to the data dir.
-    C.volna = r'/content/Animaye_Character_Parsing_v0318/AniSeg'
+    C.volna = r'/content/AniSeg_Edge_Module_0414/AniSeg'
 """please config ROOT_dir and user when u first using"""
-C.repo_name = 'Animaye_Character_Parsing_v0318'
+C.repo_name = 'AniSeg_Edge_Module_0414'
 C.abs_dir = osp.realpath(".")
 C.this_dir = C.abs_dir.split(osp.sep)[-1]
 
@@ -47,6 +47,7 @@ C.log_file = C.log_dir + '/log_' + exp_time + '.log'
 C.link_log_file = C.log_file + '/log_last.log'
 C.val_log_file = C.log_dir + '/val_' + exp_time + '.log'
 C.link_val_log_file = C.log_dir + '/val_last.log'
+C.loss_log = r'/content/drive/MyDrive/_Anime_paper_/log'+"loss.txt"
 
 """ Data Dir and Weight Dir """
 #0312 changed
@@ -55,7 +56,7 @@ C.dataset_path = osp.join(C.volna)
 C.img_root_folder = C.dataset_path
 C.gt_root_folder = C.dataset_path
 #C.pretrained_model = C.volna + 'DATA/pytorch-weight/resnet50_v1c.pth'
-C.pretrained_model = r'/content/drive/MyDrive/_Anime_paper_/log/' + 'epoch-last.pth'
+C.pretrained_model = r'/content/drive/MyDrive/_Anime_paper_/log/' + 'epoch-20.pth'
 """ Path Config """
 def add_path(path):
     if path not in sys.path:
@@ -73,11 +74,11 @@ C.fix_bias = True
 C.bn_eps = 1e-5
 C.bn_momentum = 0.1
 
-C.cps_weight = 1
+C.cps_weight = 5
 """Cutmix Config"""
 C.cutmix_mask_prop_range = (0.25, 0.5)
-C.cutmix_boxmask_n_boxes = 3
-C.cutmix_boxmask_fixed_aspect_ratio = False
+C.cutmix_boxmask_n_boxes = 1
+C.cutmix_boxmask_fixed_aspect_ratio = True
 C.cutmix_boxmask_by_size = False
 C.cutmix_boxmask_outside_bounds = False
 C.cutmix_boxmask_no_invert = False
@@ -89,9 +90,9 @@ C.image_mean = np.array([0.485, 0.456, 0.406])  # 0.485, 0.456, 0.406
 C.image_std = np.array([0.229, 0.224, 0.225])
 C.image_height = 512
 C.image_width = 512
-C.num_train_imgs = 517
+C.num_train_imgs = 703
 C.num_eval_imgs = 275
-C.num_unsup_imgs = 3147     # unsupervised samples
+C.num_unsup_imgs = 10537 -  C.num_train_imgs   # unsupervised samples
 
 """Train Config"""
 if os.getenv('learning_rate'):
@@ -101,20 +102,20 @@ else:
 
 if os.getenv('batch_size'):
     #C.batch_size = int(os.environ['batch_size'])
-    C.batch_size = 8
+    C.batch_size = 18
 else:
-    C.batch_size = 8
+    C.batch_size = 18
 
 C.lr_power = 0.9
 C.momentum = 0.9
 C.weight_decay = 1e-4
 
-C.nepochs = 60
+C.nepochs = 200
 C.max_samples = max(C.num_train_imgs, C.num_unsup_imgs)     # Define the iterations in an epoch
 C.cold_start = 0
 C.niters_per_epoch = int(math.ceil(C.max_samples * 1.0 // C.batch_size))
 C.num_workers = 0
-C.train_scale_array = [0.5,0.75, 1,1.25,1.5,1.75,2,2.25,2.5]
+C.train_scale_array = [0.75,1,1.5,2,2.25,2.5]
 C.warm_up_epoch = 0
 
 ''' Eval Config '''
@@ -129,7 +130,13 @@ C.eval_crop_size = 512
 if os.getenv('snapshot_iter'):
     C.snapshot_iter = int(os.environ['snapshot_iter'])
 else:
-    C.snapshot_iter = 2
+    C.snapshot_iter = 5
 
 C.record_info_iter = 20
 C.display_iter = 50
+
+
+#--------c2pe hyper parameter
+C.lambda_s = 1 
+C.lambda_e =1
+C.lambda_c =0.1
